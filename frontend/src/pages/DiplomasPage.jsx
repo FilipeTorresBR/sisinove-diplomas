@@ -1,0 +1,345 @@
+import { useEffect, useMemo, useState } from 'react';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+
+const initialForm = {
+  studentName: '',
+  phone: '',
+  cpf: '',
+  course: '',
+  conclusionDate: '',
+  sistecRegistration: '',
+  diplomaRegistration: '',
+  bookNumber: '',
+  sheetNumber: '',
+  registrationDate: '',
+  trackingCode: '',
+  poleId: '',
+  city: '',
+  status: 'registrado',
+  notes: ''
+};
+
+async function exportarPDF() {
+  const response = await api.get('/diplomas/export/pdf', {
+    responseType: 'blob', // Importante para arquivos
+  });
+
+  // Cria um link temporário para o navegador baixar o arquivo
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'diplomas.pdf');
+  document.body.appendChild(link);
+  link.click();
+}
+
+async function exportarCSV() {
+  const response = await api.get('/diplomas/export/csv', {
+    responseType: 'blob', // Importante para arquivos
+  });
+
+  // Cria um link temporário para o navegador baixar o arquivo
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'diplomas.csv');
+  document.body.appendChild(link);
+  link.click();
+}
+
+export default function DiplomasPage() {
+  const { user } = useAuth();
+  const [items, setItems] = useState([]);
+  const [poles, setPoles] = useState([]);
+  const [filters, setFilters] = useState({ search: '', poleId: '', city: '', status: '' });
+  const [form, setForm] = useState(initialForm);
+  const [editingId, setEditingId] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  async function load() {
+    const params = new URLSearchParams(filters).toString();
+    const { data } = await api.get(`/diplomas?${params}`);
+    setItems(data);
+  }
+
+  useEffect(() => {
+    api.get('/poles').then(({ data }) => setPoles(data));
+    load();
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [filters.search, filters.poleId, filters.city, filters.status]);
+
+  const cities = useMemo(() => [...new Set(poles.map(p => p.city))], [poles]);
+
+  function resetForm() {
+    setForm(initialForm);
+    setEditingId(null);
+    setSelectedFiles([]);
+  }
+
+  function startEdit(item) {
+    setEditingId(item.id);
+    setForm({
+      studentName: item.studentName,
+      phone: item.phone,
+      cpf: item.cpf,
+      course: item.course,
+      conclusionDate: item.conclusionDate.slice(0, 10),
+      sistecRegistration: item.sistecRegistration,
+      diplomaRegistration: item.diplomaRegistration,
+      bookNumber: item.bookNumber,
+      sheetNumber: item.sheetNumber,
+      registrationDate: item.registrationDate.slice(0, 10),
+      trackingCode: item.trackingCode || '',
+      poleId: String(item.poleId),
+      city: item.city,
+      status: item.status,
+      notes: item.notes || ''
+    });
+  }
+
+  async function save(e) {
+    e.preventDefault();
+    const payload = { ...form };
+
+    if (editingId) {
+      await api.put(`/diplomas/${editingId}`, payload);
+      if (selectedFiles.length) {
+        const fd = new FormData();
+        Array.from(selectedFiles).forEach(file => fd.append('files', file));
+        await api.post(`/diplomas/${editingId}/attachments`, fd);
+      }
+    } else {
+      const { data } = await api.post('/diplomas', payload);
+      if (selectedFiles.length) {
+        const fd = new FormData();
+        Array.from(selectedFiles).forEach(file => fd.append('files', file));
+        await api.post(`/diplomas/${data.id}/attachments`, fd);
+      }
+    }
+    resetForm();
+    load();
+  }
+
+  async function remove(id) {
+    if (!confirm('Deseja excluir este diploma?')) return;
+    await api.delete(`/diplomas/${id}`);
+    load();
+  }
+
+  return (
+    <div className="grid-cols-2" style={{ alignItems: 'start' }}>
+      <div className="panel">
+        <h3>{editingId ? 'Editar diploma' : 'Cadastrar diploma'}</h3>
+        <form onSubmit={save} className="form-grid">
+          <input
+            value={form.studentName}
+            onChange={e => setForm({ ...form, studentName: e.target.value })}
+            placeholder="Nome do aluno"
+          />
+          <input
+            value={form.phone}
+            onChange={e => setForm({ ...form, phone: e.target.value })}
+            placeholder="Telefone"
+          />
+          <input
+            value={form.cpf}
+            onChange={e => setForm({ ...form, cpf: e.target.value })}
+            placeholder="CPF"
+          />
+          <input
+            value={form.course}
+            onChange={e => setForm({ ...form, course: e.target.value })}
+            placeholder="Curso"
+          />
+          <input
+            type="date"
+            value={form.conclusionDate}
+            onChange={e => setForm({ ...form, conclusionDate: e.target.value })}
+          />
+          <input
+            value={form.sistecRegistration}
+            onChange={e => setForm({ ...form, sistecRegistration: e.target.value })}
+            placeholder="Registro SISTEC"
+          />
+          <input
+            value={form.diplomaRegistration}
+            onChange={e => setForm({ ...form, diplomaRegistration: e.target.value })}
+            placeholder="Registro do diploma"
+          />
+          <input
+            value={form.bookNumber}
+            onChange={e => setForm({ ...form, bookNumber: e.target.value })}
+            placeholder="Livro"
+          />
+          <input
+            value={form.sheetNumber}
+            onChange={e => setForm({ ...form, sheetNumber: e.target.value })}
+            placeholder="Folha"
+          />
+          <input
+            type="date"
+            value={form.registrationDate}
+            onChange={e => setForm({ ...form, registrationDate: e.target.value })}
+          />
+          <input
+            value={form.trackingCode}
+            onChange={e => setForm({ ...form, trackingCode: e.target.value })}
+            placeholder="Código de rastreamento"
+          />
+
+          <select
+            value={form.poleId}
+            onChange={e => {
+              const pole = poles.find(p => String(p.id) === e.target.value);
+              setForm({ ...form, poleId: e.target.value, city: pole?.city || '' });
+            }}
+          >
+            <option value="">Selecione o polo</option>
+            {poles.map(p => (
+              <option key={p.id} value={p.id}>{p.name} - {p.city}</option>
+            ))}
+          </select>
+
+          <input
+            value={form.city}
+            onChange={e => setForm({ ...form, city: e.target.value })}
+            placeholder="Cidade"
+          />
+
+          <select
+            value={form.status}
+            onChange={e => setForm({ ...form, status: e.target.value })}
+          >
+            <option value="registrado">Registrado</option>
+            <option value="enviado">Enviado</option>
+            <option value="entregue">Entregue</option>
+            <option value="pendente">Pendente</option>
+          </select>
+
+          <input
+            className="full"
+            type="file"
+            multiple
+            onChange={e => setSelectedFiles(e.target.files)}
+          />
+
+          <textarea
+            className="full"
+            rows="4"
+            value={form.notes}
+            onChange={e => setForm({ ...form, notes: e.target.value })}
+            placeholder="Observações"
+          />
+
+          <div className="full" style={{ display: 'flex', gap: 10 }}>
+            <button>{editingId ? 'Atualizar' : 'Salvar'}</button>
+            <button type="button" className="secondary" onClick={resetForm}>Limpar</button>
+          </div>
+        </form>
+      </div>
+
+      <div className="table-wrap">
+        <div className="toolbar">
+          <input
+            placeholder="Buscar aluno, CPF, curso..."
+            value={filters.search}
+            onChange={e => setFilters({ ...filters, search: e.target.value })}
+          />
+
+          <select
+            value={filters.poleId}
+            onChange={e => setFilters({ ...filters, poleId: e.target.value })}
+          >
+            <option value="">Todos os polos</option>
+            {poles.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={filters.city}
+            onChange={e => setFilters({ ...filters, city: e.target.value })}
+          >
+            <option value="">Todas as cidades</option>
+            {cities.map(city => (
+              <option key={city}>{city}</option>
+            ))}
+          </select>
+
+          <select
+            value={filters.status}
+            onChange={e => setFilters({ ...filters, status: e.target.value })}
+          >
+            <option value="">Todos os status</option>
+            <option value="registrado">Registrado</option>
+            <option value="enviado">Enviado</option>
+            <option value="entregue">Entregue</option>
+            <option value="pendente">Pendente</option>
+          </select>
+
+          <button type='button' onClick={exportarCSV}>Exportar CSV </button>
+          <button type="button" onClick={exportarPDF}>Exportar PDF</button>
+
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Aluno</th>
+              <th>Curso</th>
+              <th>Polo</th>
+              <th>Cidade</th>
+              <th>Registro</th>
+              <th>Status</th>
+              <th>Rastreio</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map(item => (
+              <tr key={item.id}>
+                <td>
+                  <strong>{item.studentName}</strong>
+                  <br />
+                  <span className="muted">{item.cpf}</span>
+                </td>
+                <td>{item.course}</td>
+                <td>{item.pole?.name}</td>
+                <td>{item.city}</td>
+                <td>{item.diplomaRegistration}</td>
+                <td>
+                  <span className={`badge ${item.status}`}>{item.status}</span>
+                </td>
+                <td>{item.trackingCode || '-'}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  <button type="button" className="secondary" onClick={() => startEdit(item)}>
+                    Editar
+                  </button>
+                  {' '}
+                  {(user?.role === 'admin') && (
+                    <button type="button" className="secondary" onClick={() => remove(item.id)}>
+                      Excluir
+                    </button>
+                  )}
+                  {' '}
+                  <a href={`${import.meta.env.VITE_API_URL || 'http://sisdip.sisinove.com.br'}/diplomas/${item.id}/proof`} target="_blank">
+                    <button type="button">Comprovante</button>
+                  </a>
+                </td>
+              </tr>
+            ))}
+            {!items.length && (
+              <tr>
+                <td colSpan="8">Nenhum diploma encontrado.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
