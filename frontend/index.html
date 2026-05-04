@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sisinove Diplomas</title>
+    <style>
+      :root {
+        --primary: #0d4b8e;
+        --primary-dark: #093761;
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --text: #1c2b3a;
+        --muted: #6f8193;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        min-height: 100vh;
+      }
+      .sidebar {
+        background: linear-gradient(
+          180deg,
+          var(--primary),
+          var(--primary-dark)
+        );
+        color: #fff;
+        padding: 24px;
+      }
+      .sidebar h1 {
+        font-size: 22px;
+        margin: 0 0 8px;
+      }
+      .sidebar p {
+        font-size: 13px;
+        opacity: 0.85;
+        margin: 0 0 24px;
+      }
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .nav a {
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .main {
+        padding: 24px;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .card {
+        background: var(--card);
+        padding: 18px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      }
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .card .value {
+        font-size: 28px;
+        font-weight: 700;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .table-wrap {
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+        overflow: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #edf2f7;
+        text-align: left;
+        font-size: 14px;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      input,
+      select,
+      textarea,
+      button {
+        padding: 10px 12px;
+        border: 1px solid #d7e0ea;
+        border-radius: 10px;
+        font-size: 14px;
+      }
+      button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: #e8eff7;
+        color: var(--text);
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .form-grid .full {
+        grid-column: 1/-1;
+      }
+      .panel {
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      }
+      .badge {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .badge.registrado {
+        background: #e8f0fe;
+        color: #2050b5;
+      }
+      .badge.enviado {
+        background: #fff4db;
+        color: #9a6b00;
+      }
+      .badge.entregue {
+        background: #e5f6ee;
+        color: #15794a;
+      }
+      .badge.pendente {
+        background: #fdecec;
+        color: #af2b2b;
+      }
+      .login-wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0d4b8e, #0b2d52);
+      }
+      .login-card {
+        background: #fff;
+        width: 380px;
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      @media (max-width: 1200px) {
+        .cards {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .form-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          display: none;
+        }
+      }
+      @media (max-width: 700px) {
+        .cards,
+        .grid-2,
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

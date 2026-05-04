@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  secretaria
+  polo
+}
+
+enum DiplomaStatus {
+  registrado
+  enviado
+  entregue
+  pendente
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(secretaria)
+  city         String?
+  poleId       Int?
+  pole         Pole?    @relation(fields: [poleId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model Pole {
+  id         Int       @id @default(autoincrement())
+  name       String
+  city       String
+  state      String
+  diplomas   Diploma[]
+  users      User[]
+  createdAt  DateTime  @default(now())
+  @@unique([name, city])
+}
+
+model Diploma {
+  id                   Int            @id @default(autoincrement())
+  studentName          String
+  phone                String
+  cpf                  String
+  course               String
+  conclusionDate       DateTime
+  sistecRegistration   String
+  diplomaRegistration  String
+  bookNumber           String
+  sheetNumber          String
+  registrationDate     DateTime
+  trackingCode         String?
+  status               DiplomaStatus  @default(registrado)
+  notes                String?
+  city                 String
+  poleId               Int
+  pole                 Pole           @relation(fields: [poleId], references: [id])
+  attachments          Attachment[]
+  createdBy            String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  @@index([cpf])
+  @@index([course])
+  @@index([city])
+  @@index([poleId])
+}
+
+model Attachment {
+  id         Int      @id @default(autoincrement())
+  diplomaId  Int
+  diploma    Diploma  @relation(fields: [diplomaId], references: [id], onDelete: Cascade)
+  fileName   String
+  filePath   String
+  mimeType   String
+  createdAt  DateTime @default(now())
+}
