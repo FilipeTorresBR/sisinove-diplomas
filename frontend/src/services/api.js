@@ -1,6 +1,6 @@
 import axios from "axios";
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://sisdip.sisinove.com.br/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4001/api",
 });
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("sisdip_token");

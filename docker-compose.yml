@@ -2,12 +2,11 @@ services:
   db:
     image: postgres:16-alpine
     container_name: sisinove_shared_db
-    restart: always # Garante que volte após quedas de energia
+    restart: always
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-    # Remova o mapeamento de portas externas ou use 127.0.0.1
     ports:
       - "127.0.0.1:5434:5432"
     volumes:
@@ -17,19 +16,25 @@ services:
   sisdip_backend:
     build: ./backend
     restart: always
+    # ADICIONADO: Sincroniza o código e ignora a node_modules interna para não conflitar
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     environment:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/sisdip?schema=public
       PORT: 4001
       JWT_SECRET: ${JWT_SECRET}
-      FRONTEND_URL: https://sisdip.sisinove.com.br
+      FRONTEND_URL: http://localhost:8081
     ports:
       - "127.0.0.1:4001:4001"
 
   sisdip_frontend:
     build: ./frontend
     restart: always
+    # Se estiver usando Nginx no Dockerfile, o hot reload via volumes não funcionará 
+    # sem mudar o CMD para rodar o modo 'dev'.
     environment:
-      VITE_API_URL: https://sisdip.sisinove.com.br/api
+      VITE_API_URL: http://localhost:4001/api
     ports:
       - "127.0.0.1:8081:80"
 
@@ -39,6 +44,8 @@ services:
     restart: always
     env_file: ../sisinove-iso/.env
     volumes:
+      - ../sisinove-iso/backend:/app
+      - /app/node_modules
       - ../sisinove-iso/backend/uploads:/app/uploads:Z
     environment:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/sisinove_iso?schema=public
@@ -50,7 +57,7 @@ services:
     build:
       context: ../sisinove-iso/frontend
       args:
-        VITE_API_URL: https://iso.sisinove.com.br/api
+        VITE_API_URL: http://localhost:4000/api
     restart: always
     links:
       - iso_backend:backend

@@ -2,7 +2,7 @@
 CREATE TYPE "Role" AS ENUM ('admin', 'secretaria', 'polo');
 
 -- CreateEnum
-CREATE TYPE "DiplomaStatus" AS ENUM ('registrado', 'enviado', 'entregue', 'pendente');
+CREATE TYPE "DiplomaStatus" AS ENUM ('registrado', 'enviado', 'entregue', 'confeccao');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -14,7 +14,6 @@ CREATE TABLE "User" (
     "city" TEXT,
     "poleId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
@@ -25,7 +24,6 @@ CREATE TABLE "Pole" (
     "city" TEXT NOT NULL,
     "state" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "Pole_pkey" PRIMARY KEY ("id")
 );
 
@@ -50,7 +48,6 @@ CREATE TABLE "Diploma" (
     "createdBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "Diploma_pkey" PRIMARY KEY ("id")
 );
 
@@ -62,33 +59,35 @@ CREATE TABLE "Attachment" (
     "filePath" TEXT NOT NULL,
     "mimeType" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "Attachment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "User_email_key" ON "User" ("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Pole_name_city_key" ON "Pole"("name", "city");
+CREATE UNIQUE INDEX "Pole_name_city_key" ON "Pole" ("name", "city");
 
 -- CreateIndex
-CREATE INDEX "Diploma_cpf_idx" ON "Diploma"("cpf");
+CREATE INDEX "Diploma_cpf_idx" ON "Diploma" ("cpf");
 
 -- CreateIndex
-CREATE INDEX "Diploma_course_idx" ON "Diploma"("course");
+CREATE INDEX "Diploma_course_idx" ON "Diploma" ("course");
 
 -- CreateIndex
-CREATE INDEX "Diploma_city_idx" ON "Diploma"("city");
+CREATE INDEX "Diploma_city_idx" ON "Diploma" ("city");
 
 -- CreateIndex
-CREATE INDEX "Diploma_poleId_idx" ON "Diploma"("poleId");
+CREATE INDEX "Diploma_poleId_idx" ON "Diploma" ("poleId");
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_poleId_fkey" FOREIGN KEY ("poleId") REFERENCES "Pole"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "User"
+ADD CONSTRAINT "User_poleId_fkey" FOREIGN KEY ("poleId") REFERENCES "Pole" ("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Diploma" ADD CONSTRAINT "Diploma_poleId_fkey" FOREIGN KEY ("poleId") REFERENCES "Pole"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Diploma"
+ADD CONSTRAINT "Diploma_poleId_fkey" FOREIGN KEY ("poleId") REFERENCES "Pole" ("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Attachment" ADD CONSTRAINT "Attachment_diplomaId_fkey" FOREIGN KEY ("diplomaId") REFERENCES "Diploma"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Attachment"
+ADD CONSTRAINT "Attachment_diplomaId_fkey" FOREIGN KEY ("diplomaId") REFERENCES "Diploma" ("id") ON DELETE CASCADE ON UPDATE CASCADE;

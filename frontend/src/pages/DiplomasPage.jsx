@@ -100,7 +100,32 @@ export default function DiplomasPage() {
       notes: item.notes || ''
     });
   }
+  async function baixarComprovante(id) {
+    try {
+      // Faz a requisição para a rota específica do comprovante
+      const response = await api.get(`/diplomas/${id}/proof`, {
+        responseType: 'blob',
+      });
 
+      // Cria a URL do arquivo
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Define o nome do arquivo (ajuste conforme necessário)
+      link.setAttribute('download', `comprovante-${id}.pdf`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpeza: remove o link e libera a URL da memória
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erro ao baixar o PDF:", error);
+      // Aqui você pode colocar um alerta para o usuário
+    }
+  }
   async function save(e) {
     e.preventDefault();
     const payload = { ...form };
@@ -217,7 +242,7 @@ export default function DiplomasPage() {
             <option value="registrado">Registrado</option>
             <option value="enviado">Enviado</option>
             <option value="entregue">Entregue</option>
-            <option value="pendente">Pendente</option>
+            <option value="confeccao">Em Confecção</option>
           </select>
 
           <input
@@ -278,7 +303,7 @@ export default function DiplomasPage() {
             <option value="registrado">Registrado</option>
             <option value="enviado">Enviado</option>
             <option value="entregue">Entregue</option>
-            <option value="pendente">Pendente</option>
+            <option value="confeccao">Em Confecção</option>
           </select>
 
           <button type='button' onClick={exportarCSV}>Exportar CSV </button>
@@ -326,9 +351,9 @@ export default function DiplomasPage() {
                     </button>
                   )}
                   {' '}
-                  <a href={`${import.meta.env.VITE_API_URL || 'http://sisdip.sisinove.com.br'}/diplomas/${item.id}/proof`} target="_blank">
-                    <button type="button">Comprovante</button>
-                  </a>
+                  <button type="button" onClick={() => baixarComprovante(item.id)}>
+                    Comprovante
+                  </button>
                 </td>
               </tr>
             ))}

@@ -13,7 +13,7 @@ export async function getDashboard(req, res) {
     where: { ...where, status: "entregue" },
   });
   const totalPending = await prisma.diploma.count({
-    where: { ...where, status: "pendente" },
+    where: { ...where, status: "confeccao" },
   });
   const totalRegistered = await prisma.diploma.count({
     where: { ...where, status: "registrado" },
@@ -27,7 +27,7 @@ export async function getDashboard(req, res) {
     orderBy: { createdAt: "desc" },
   });
   const byCourseMap = {},
-    byStatusMap = { registrado: 0, enviado: 0, entregue: 0, pendente: 0 },
+    byStatusMap = { registrado: 0, enviado: 0, entregue: 0, confeccao: 0 },
     byCityMap = {};
   diplomas.forEach((item) => {
     byCourseMap[item.course] = (byCourseMap[item.course] || 0) + 1;
