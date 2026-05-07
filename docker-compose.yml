@@ -16,7 +16,6 @@ services:
   sisdip_backend:
     build: ./backend
     restart: always
-    # ADICIONADO: Sincroniza o código e ignora a node_modules interna para não conflitar
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -29,14 +28,16 @@ services:
       - "127.0.0.1:4001:4001"
 
   sisdip_frontend:
-    build: ./frontend
-    restart: always
-    # Se estiver usando Nginx no Dockerfile, o hot reload via volumes não funcionará 
-    # sem mudar o CMD para rodar o modo 'dev'.
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     environment:
-      VITE_API_URL: http://localhost:4001/api
+      - VITE_API_URL=http://localhost:4001/api
     ports:
-      - "127.0.0.1:8081:80"
+      - "127.0.0.1:8081:5173"
+    command: sh -c "npm install && npm run dev -- --host --port 5173"
 
   # --- ISO ---
   iso_backend:
@@ -54,15 +55,17 @@ services:
       - "127.0.0.1:4000:4000"
 
   iso_frontend:
-    build:
-      context: ../sisinove-iso/frontend
-      args:
-        VITE_API_URL: http://localhost:4000/api
-    restart: always
-    links:
-      - iso_backend:backend
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ../sisinove-iso/frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:4000/api
     ports:
-      - "127.0.0.1:8082:80"
+      - "127.0.0.1:8082:5173" # Mapeia a porta 8082 local para a 5173 do Vite
+    # Adicionamos o comando para rodar o dev server do ISO
+    command: sh -c "npm install && npm run dev -- --host --port 5173"
 
 volumes:
   postgres_data:
